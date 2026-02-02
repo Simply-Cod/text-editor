@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 
 Vector2 renderGetTerminalSize() {
@@ -21,8 +22,8 @@ Vector2 renderGetTerminalSize() {
     return termSize;
 }
 
-int renderDraw(Buffer *buffer, LineBuffer *currentLine, enum InputMode mode) {
-    
+int renderDraw(Buffer *buffer, LineBuffer *currentLine, enum InputMode mode, bool fIsDirty) {
+
     Vector2 termSize = renderGetTerminalSize();
     if (termSize.x == 0) return 0;
 
@@ -50,6 +51,9 @@ int renderDraw(Buffer *buffer, LineBuffer *currentLine, enum InputMode mode) {
     // Draw Status Bar
     printf("-- %s MODE\x1b[0m -- Line: %d, Col: %d",
             (mode == INSERT ? "\x1b[41mINSERT" : "\x1b[44mNORMAL"), targetRow + 1, lineGetVisualCursorPos(currentLine));
+    if (fIsDirty) {
+        printf("\t[+]");
+    }
 
     // Set cursor
     printf("\x1b[%d;%dH", targetRow + 1, lineGetVisualCursorPos(currentLine) + (mode == INSERT ? 6 : 5));

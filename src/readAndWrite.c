@@ -31,3 +31,26 @@ int loadFile(Buffer *buff, char *fName) {
     }
     return 1;
 }
+
+int writeFile(Buffer *buff, char *fName) {
+
+    if (fName == NULL) return 0;
+
+    FILE *file;
+    file = fopen(fName, "w");
+    if (file == NULL) return 0;
+
+    LineBuffer *line = buff->head;
+    while (line != NULL) {
+
+        fprintf(file, "%s\n", line->buffer);
+
+        if (line->next != NULL) {
+            line = line->next;
+        } else {
+            break;
+        }
+    }
+    fclose(file);
+    return 1;
+}

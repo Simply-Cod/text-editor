@@ -13,3 +13,4 @@ enum InputMode {
 };
 
 unsigned int readInput();
+int getCommand();

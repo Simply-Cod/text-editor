@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 
@@ -17,6 +18,9 @@ int main(int argc, char *argv[]) {
     bool quit = false;
     unsigned int ch = 0;
     enum InputMode inputMode = NORMAL;
+    char *fName;
+    bool havefName = false;
+    bool fIsDirty = false;
 
     if (!TerminalEnableRaw(&term))exit(1);
 
@@ -26,7 +30,11 @@ int main(int argc, char *argv[]) {
     LineBuffer *currentLine = buff.head;
     // either read or create new buffer
     if (argc > 1) {
-        loadFile(&buff, argv[1]);
+        if (loadFile(&buff, argv[1])) {
+            fName = malloc(sizeof(char) * strlen(argv[1]));
+
+            if (fName) havefName = true;
+        }
     } else {
         currentLine->buffer[0] = '\0';
         currentLine->lineLength = 0;
@@ -94,6 +102,23 @@ int main(int argc, char *argv[]) {
                     currentLine = currentLine->previous;
                     inputMode = INSERT;
                     break;
+                case ':':
+                    int cmd = getCommand();
+
+                    switch (cmd) {
+                        case 2000:
+                            quit = true;
+                            break;
+                        case 2001:
+                            if (havefName) {
+                                writeFile(&buff, fName);
+                                fIsDirty = false;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
                 default:
                     break;
             }
@@ -112,6 +137,7 @@ int main(int argc, char *argv[]) {
                 // =========================================
                 case 13:
                     bufferAddLineBelow(&buff, currentLine);
+                    fIsDirty = true;
 
                     if (currentLine->next == NULL) break;
 
@@ -137,13 +163,14 @@ int main(int argc, char *argv[]) {
                     for (int i = 0; i < 4; i++) {
                         lineInser1Byte(currentLine, ' ');
                     }
+                    fIsDirty = true;
                     break;
 
                 // Ascii printable (1 byte)
                 // =========================================
                 case 32 ... 126:
                     lineInser1Byte(currentLine, ch);
-
+                    fIsDirty = true;
                     break;
                 /*----------------------------------------*/
 
@@ -167,6 +194,7 @@ int main(int argc, char *argv[]) {
                     } else {
                         lineRemoveChar(currentLine);
                     }
+                    fIsDirty = true;
                     break;
                 /*----------------------------------------*/
 
@@ -179,6 +207,7 @@ int main(int argc, char *argv[]) {
                     if (read(STDIN_FILENO, &seq[1], 1) == 0) break;
 
                     lineInsert2Bytes(currentLine, seq[0], seq[1]);
+                    fIsDirty = true;
                     break;
                 /*----------------------------------------*/
 
@@ -206,7 +235,7 @@ int main(int argc, char *argv[]) {
         } // Insert mode end
         // Draw
         // ===============================================
-        renderDraw(&buff, currentLine, inputMode);
+        renderDraw(&buff, currentLine, inputMode, fIsDirty);
 
         fflush(stdout);
         /*-----------------------------------------------*/

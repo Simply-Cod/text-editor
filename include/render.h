@@ -1,6 +1,7 @@
 #pragma once
 #include "buffer.h"
 #include "input.h"
+#include <stdbool.h>
 
 typedef struct Vector2{
     int x;
@@ -11,4 +12,4 @@ typedef struct Vector2{
 Vector2 renderGetTerminalSize();
 
 
-int renderDraw(Buffer *buffer, LineBuffer *currentLine, enum InputMode mode);
+int renderDraw(Buffer *buffer, LineBuffer *currentLine, enum InputMode mode, bool fIsDirty);

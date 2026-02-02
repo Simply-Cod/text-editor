@@ -3,3 +3,4 @@
 
 
 int loadFile(Buffer *buff, char *fName);
+int writeFile(Buffer *buff, char *fName);
