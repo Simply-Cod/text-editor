@@ -36,7 +36,7 @@ int renderDraw(Buffer *buffer, LineBuffer *currentLine, enum InputMode mode) {
     for (int i = 0; i < termSize.y - 2; i++) {
 
         if (printPtr != NULL) {
-            printf("%-3d %s\x1b[1E", i + 1, printPtr->buffer);
+            printf("%3d  %s\x1b[1E", i + 1, printPtr->buffer);
 
             if (printPtr == currentLine)
                 targetRow = row;
@@ -52,6 +52,6 @@ int renderDraw(Buffer *buffer, LineBuffer *currentLine, enum InputMode mode) {
             (mode == INSERT ? "\x1b[41mINSERT" : "\x1b[44mNORMAL"), targetRow + 1, lineGetVisualCursorPos(currentLine));
 
     // Set cursor
-    printf("\x1b[%d;%dH", targetRow + 1, lineGetVisualCursorPos(currentLine) + 5);
+    printf("\x1b[%d;%dH", targetRow + 1, lineGetVisualCursorPos(currentLine) + (mode == INSERT ? 6 : 5));
     return 1;
 }

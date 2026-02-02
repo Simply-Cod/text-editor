@@ -52,6 +52,12 @@ int main() {
                     break;
                 case 'i':
                     inputMode = INSERT;
+                    lineMoveCursorLeft(currentLine);
+                    write(STDOUT_FILENO, "\x1b[6 q", 5);
+                    break;
+                case 'a':
+                    inputMode = INSERT;
+                    write(STDOUT_FILENO, "\x1b[6 q", 5);
                     break;
                 case UP:
                 case 'k':
@@ -78,6 +84,11 @@ int main() {
                     currentLine = currentLine->next;
                     inputMode = INSERT;
                     break;
+                case 'O':
+                    bufferAddLineAbove(&buff, currentLine);
+                    currentLine = currentLine->previous;
+                    inputMode = INSERT;
+                    break;
                 default:
                     break;
             }
@@ -89,6 +100,7 @@ int main() {
                     break;
                 case ESC:
                     inputMode = NORMAL;
+                    write(STDOUT_FILENO, "\x1b[2 q", 5); // Block
                     break;
 
                 // Enter
@@ -114,6 +126,12 @@ int main() {
 
                 case 17: // Ctrl-Q
                     quit = true;
+                    break;
+
+                case '\t':
+                    for (int i = 0; i < 4; i++) {
+                        lineInser1Byte(currentLine, ' ');
+                    }
                     break;
 
                 // Ascii printable (1 byte)
