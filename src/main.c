@@ -25,6 +25,8 @@ int main(int argc, char *argv[]) {
     viewPort.topLine = 0;
     viewPort.cursorRow = 0;
 
+    int prefCurPos = 0;
+
     if (!TerminalEnableRaw(&term))exit(1);
 
     bufferInit(&buff);
@@ -38,7 +40,7 @@ int main(int argc, char *argv[]) {
             strncpy(bInfo.fileName, argv[1], strlen(argv[1]));
             bInfo.fileName[strlen(argv[1]) + 1] = '\0';
             bInfo.hasFileName = true;
-        } 
+        }
 
         if (loadFile(&buff, bInfo.fileName)) {
 
@@ -64,9 +66,11 @@ int main(int argc, char *argv[]) {
                     break;
                 case '0':
                     currentLine->cursorPosition = 0;
+                    prefCurPos = 0;
                     break;
                 case '$':
                     currentLine->cursorPosition = currentLine->lineLength;
+                    prefCurPos = currentLine->lineLength;
                     break;
                 case 17: // Ctrl-Q
                     quit = true;
@@ -74,29 +78,45 @@ int main(int argc, char *argv[]) {
                 case 'i':
                     bInfo.mode = INSERT;
                     lineMoveCursorLeft(currentLine);
+                    prefCurPos = currentLine->cursorPosition;
                     break;
                 case 'a':
                     bInfo.mode = INSERT;
+                    prefCurPos = currentLine->cursorPosition;
                     break;
                 case UP:
                 case 'k':
                     if (currentLine->previous == NULL) break;
 
                     currentLine = currentLine->previous;
+
+                    if (prefCurPos > currentLine->lineLength)
+                        currentLine->cursorPosition = currentLine->lineLength;
+                    else
+                        currentLine->cursorPosition = prefCurPos;
                     break;
                 case DOWN:
                 case 'j':
                     if (currentLine->next == NULL) break;
 
                     currentLine = currentLine->next;
+                    if (prefCurPos > currentLine->lineLength)
+                        currentLine->cursorPosition = currentLine->lineLength;
+                    else
+                        currentLine->cursorPosition = prefCurPos;
                     break;
                 case RIGHT:
                 case 'l':
                     lineMoveCursorRight(currentLine);
+
+                    if (prefCurPos != currentLine->cursorPosition)
+                        prefCurPos = currentLine->cursorPosition;
                     break;
                 case LEFT:
                 case 'h':
                     lineMoveCursorLeft(currentLine);
+                    if (prefCurPos != currentLine->cursorPosition)
+                        prefCurPos = currentLine->cursorPosition;
                     break;
                 case 'o':
                     bufferAddLineBelow(&buff, currentLine);
@@ -157,7 +177,6 @@ int main(int argc, char *argv[]) {
                         int count = currentLine->lineLength - currentLine->cursorPosition;
                         lineMoveBuffDown(currentLine, count);
                         currentLine = currentLine->next;
-
                     }
                     break;
                 /*----------------------------------------*/
@@ -181,6 +200,7 @@ int main(int argc, char *argv[]) {
                 case 32 ... 126:
                     lineInser1Byte(currentLine, ch);
                     bInfo.buffIsDirty = true;
+                    prefCurPos = currentLine->cursorPosition;
                     break;
                 /*----------------------------------------*/
 
@@ -200,9 +220,11 @@ int main(int argc, char *argv[]) {
                             currentLine = currentLine->previous;
                             bufferDeleteLine(&buff, currentLine->next);
                         }
+                        prefCurPos = currentLine->cursorPosition;
 
                     } else {
                         lineRemoveChar(currentLine);
+                        prefCurPos = currentLine->cursorPosition;
                     }
                     bInfo.buffIsDirty = true;
                     break;
@@ -218,6 +240,7 @@ int main(int argc, char *argv[]) {
 
                     lineInsert2Bytes(currentLine, seq[0], seq[1]);
                     bInfo.buffIsDirty = true;
+                    prefCurPos = currentLine->cursorPosition;
                     break;
                 /*----------------------------------------*/
 
@@ -225,17 +248,29 @@ int main(int argc, char *argv[]) {
                     if (currentLine->previous == NULL) break;
 
                     currentLine = currentLine->previous;
+                    if (prefCurPos > currentLine->lineLength)
+                        currentLine->cursorPosition = currentLine->lineLength;
+                    else
+                        currentLine->cursorPosition = prefCurPos;
                     break;
                 case DOWN:
                     if (currentLine->next == NULL) break;
 
                     currentLine = currentLine->next;
+                    if (prefCurPos > currentLine->lineLength)
+                        currentLine->cursorPosition = currentLine->lineLength;
+                    else
+                        currentLine->cursorPosition = prefCurPos;
                     break;
                 case RIGHT:
                     lineMoveCursorRight(currentLine);
+                    if (prefCurPos != currentLine->cursorPosition)
+                        prefCurPos = currentLine->cursorPosition;
                     break;
                 case LEFT:
                     lineMoveCursorLeft(currentLine);
+                    if (prefCurPos != currentLine->cursorPosition)
+                        prefCurPos = currentLine->cursorPosition;
                     break;
                 default:
                     printf("%d ", ch);
