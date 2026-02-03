@@ -242,6 +242,9 @@ int main(int argc, char *argv[]) {
             }
 
         } // Insert mode end
+
+        infoGetLineNumbers(&bInfo, &buff, currentLine);
+
         // Draw
         // ===============================================
         renderDraw(&buff, currentLine, &bInfo);

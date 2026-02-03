@@ -1,4 +1,5 @@
 #include "bufferInfo.h"
+#include "buffer.h"
 #include "input.h"
 #include "render.h"
 #include <stdio.h>
@@ -8,12 +9,36 @@
 
 void infoInit(BufferInfo *bInfo) {
     bInfo->bufferLength = 0;
+    bInfo->currentLineNumb = 0;
     bInfo->mode = NORMAL;
     bInfo->buffIsDirty = false;
     bInfo->hasFileName = false;
     bInfo->fileName = NULL;
 }
 
+int infoGetLineNumbers(BufferInfo *info, Buffer *buffer, LineBuffer *current) {
+
+    if (buffer->head == NULL) {
+        info->bufferLength = 0;
+        info->currentLineNumb = 0;
+        return 1;
+    }
+
+    LineBuffer *line = buffer->head;
+
+    int count = 0;
+    while (line != NULL) {
+
+        count++;
+        if (line == current)
+            info->currentLineNumb = count;
+
+        line = line->next;
+    }
+    info->bufferLength = count;
+
+    return 1;
+}
 
 int getFileName(BufferInfo *bInfo) {
 
