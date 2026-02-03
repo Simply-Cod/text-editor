@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+void cleanup();
 
 
 Terminal term;
@@ -18,6 +19,8 @@ BufferInfo bInfo;
 ViewPort viewPort;
 
 int main(int argc, char *argv[]) {
+    atexit(cleanup);
+
     bool quit = false;
     unsigned int ch = 0;
     infoInit(&bInfo);
@@ -298,10 +301,18 @@ int main(int argc, char *argv[]) {
         /*-----------------------------------------------*/
     }
 
-
-    write(STDOUT_FILENO, "\x1b[H\x1b[2J", 7);
-    free(bInfo.fileName);
-    bufferFree(&buff);
-    TerminalDisableRaw(&term);
+    cleanup();
     return 0;
+}
+
+void cleanup() {
+    write(STDOUT_FILENO, "\x1b[H\x1b[2J", 7);
+
+    if (bInfo.fileName != NULL) {
+        free(bInfo.fileName);
+    }
+    if (buff.head != NULL) {
+        bufferFree(&buff);
+    }
+    TerminalDisableRaw(&term);
 }

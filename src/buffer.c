@@ -14,11 +14,13 @@ int bufferCreateFirstLine(Buffer *buffer) {
 
     LineBuffer *newLine = malloc(sizeof(LineBuffer));
 
-    if (!newLine) return 0;
+    if (!newLine) {
+        exit(1);
+    }
     newLine->buffer = malloc(sizeof(char) * MAX_LINE_LENGTH);
     if (!newLine->buffer) {
         free(newLine);
-        return 0;
+        exit(1);
     }
     newLine->lineLength = 0;
     newLine->cursorPosition = 0;
@@ -34,11 +36,13 @@ int bufferAddLineBelow(Buffer *buffer, LineBuffer *currentLine) {
 
     LineBuffer *newLine = malloc(sizeof(LineBuffer));
 
-    if (!newLine) return 0;
+    if (!newLine) {
+        exit(1);
+    }
     newLine->buffer = malloc(sizeof(char) * MAX_LINE_LENGTH);
     if (!newLine->buffer) {
         free(newLine);
-        return 0;
+        exit(1);
     }
     newLine->lineLength = 0;
     newLine->cursorPosition = 0;
@@ -62,11 +66,13 @@ int bufferAddLineAbove(Buffer *buffer, LineBuffer *currentLine) {
 
     LineBuffer *newLine = malloc(sizeof(LineBuffer));
 
-    if (!newLine) return 0;
+    if (!newLine) {
+        exit(1);
+    }
     newLine->buffer = malloc(sizeof(char) * MAX_LINE_LENGTH);
     if (!newLine->buffer) {
         free(newLine);
-        return 0;
+        exit(1);
     }
     newLine->lineLength = 0;
     newLine->cursorPosition = 0;
