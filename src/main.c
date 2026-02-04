@@ -101,6 +101,19 @@ int main(int argc, char *argv[]) {
                     if (currentLine->lineLength > 0)
                         motion_x_RemoveChar(currentLine);
                     break;
+                case 'w':
+                    if (currentLine->lineLength <= 0)
+                        break;
+
+                    motion_w_JumpWord(currentLine);
+                    prefCurPos = currentLine->cursorPosition;
+                    break;
+                case 'b':
+                    if (currentLine->cursorPosition <= 1) break;
+
+                    motion_b_JumbWordB(currentLine);
+                    prefCurPos = currentLine->cursorPosition;
+                    break;
                 case UP:
                 case 'k':
                     if (currentLine->previous == NULL) break;
@@ -109,7 +122,7 @@ int main(int argc, char *argv[]) {
 
                     if (prefCurPos > currentLine->lineLength) {
                         if (currentLine->lineLength > 0)
-                            currentLine->cursorPosition = currentLine->lineLength--;
+                            currentLine->cursorPosition = currentLine->lineLength - 1;
                         else
                             currentLine->cursorPosition = 0;
                     }
@@ -125,7 +138,7 @@ int main(int argc, char *argv[]) {
 
                     if (prefCurPos > currentLine->lineLength) {
                         if (currentLine->lineLength > 0)
-                            currentLine->cursorPosition = currentLine->lineLength--;
+                            currentLine->cursorPosition = currentLine->lineLength - 1;
                         else
                             currentLine->cursorPosition = 0;
                     }
@@ -149,11 +162,13 @@ int main(int argc, char *argv[]) {
                 case 'o':
                     bufferAddLineBelow(&buff, currentLine);
                     currentLine = currentLine->next;
+                    prefCurPos = currentLine->cursorPosition;
                     bInfo.mode = INSERT;
                     break;
                 case 'O':
                     bufferAddLineAbove(&buff, currentLine);
                     currentLine = currentLine->previous;
+                    prefCurPos = currentLine->cursorPosition;
                     bInfo.mode = INSERT;
                     break;
                 case ':':
@@ -274,7 +289,7 @@ int main(int argc, char *argv[]) {
 
                     if (prefCurPos > currentLine->lineLength) {
                         if (currentLine->lineLength > 0)
-                            currentLine->cursorPosition = currentLine->lineLength--;
+                            currentLine->cursorPosition = currentLine->lineLength - 1;
                         else
                             currentLine->cursorPosition = 0;
                     }
@@ -289,7 +304,7 @@ int main(int argc, char *argv[]) {
 
                     if (prefCurPos > currentLine->lineLength) {
                         if (currentLine->lineLength > 0)
-                            currentLine->cursorPosition = currentLine->lineLength--;
+                            currentLine->cursorPosition = currentLine->lineLength - 1;
                         else
                             currentLine->cursorPosition = 0;
                     }

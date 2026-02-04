@@ -270,9 +270,10 @@ int lineMoveBuffUp(LineBuffer *line) {
     if (line->previous->lineLength + line->lineLength >= MAX_LINE_LENGTH - 1) return 0;
 
     strncpy(&line->previous->buffer[line->previous->lineLength], &line->buffer[0], line->lineLength);
+    int newCur = line->previous->lineLength;
     line->previous->lineLength += line->lineLength;
     line->previous->buffer[line->previous->lineLength] = '\0';
-
+    line->previous->cursorPosition = newCur;
     line->lineLength = 0;
     line->buffer[0] = '\0';
 

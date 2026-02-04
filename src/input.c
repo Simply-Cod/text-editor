@@ -14,6 +14,14 @@ unsigned int readInput() {
         unsigned char seq[3];
 
         if (read(STDIN_FILENO, &seq[0], 1) == 0) return ESC;
+
+        switch (seq[0]) {
+            case 'j':
+                return ALT_J;
+            case 'k':
+                return ALT_K;
+        }
+
         if (read(STDIN_FILENO, &seq[1], 1) == 0) return ESC;
 
         if (seq[0] == '[') {

@@ -13,6 +13,9 @@
 #define RIGHT   1002
 #define LEFT    1003
 
+#define ALT_J 1500
+#define ALT_K 1501
+
 // Command signals
 #define CMD_QUIT 2000
 #define CMD_WRITE 2001
