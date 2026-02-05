@@ -1,4 +1,5 @@
 #include "buffer.h"
+#include "render.h"
 #include <string.h>
 
 

@@ -1,7 +1,9 @@
 #pragma once
 
 // default keybinds
+#define CTRL_D 4
 #define CTRL_Q 17
+#define CTRL_U 21
 
 #define ESC 27
 #define ENTER 13

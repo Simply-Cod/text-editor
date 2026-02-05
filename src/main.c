@@ -115,6 +115,25 @@ int main(int argc, char *argv[]) {
                     motion_b_JumbWordB(currentLine);
                     prefCurPos = currentLine->cursorPosition;
                     break;
+                case CTRL_D:
+                    if (viewPort.height <= 1) break;
+
+                    for (int i = 0; i < viewPort.height / 2; i++) {
+                        if (currentLine->next == NULL) break;
+                        currentLine = currentLine->next;
+                    }
+                    correctCursorPos(currentLine, &prefCurPos);
+                    break;
+                case CTRL_U:
+                    if (viewPort.height <= 1) break;
+
+                    for (int i = 0; i < viewPort.height / 2; i++) {
+                        if (currentLine->previous == NULL) break;
+
+                        currentLine = currentLine->previous;
+                    }
+                    correctCursorPos(currentLine, &prefCurPos);
+                    break;
                 case UP:
                 case 'k':
                     if (currentLine->previous == NULL) break;
@@ -296,20 +315,23 @@ int main(int argc, char *argv[]) {
 
         infoGetLineNumbers(&bInfo, &buff, currentLine);
 
+        if (currentLine->cursorPosition < 0)
+            currentLine->cursorPosition = 0;
+
         // Draw
         // ===============================================
 
         // Cursor look
 
-            if (bInfo.mode == NORMAL) {
-                write(STDOUT_FILENO, "\x1b[2 q", 5); // Block
-            } else if (bInfo.mode == INSERT) {
-                write(STDOUT_FILENO, "\x1b[6 q", 5); // I 
-            }
+        if (bInfo.mode == NORMAL) {
+            write(STDOUT_FILENO, "\x1b[2 q", 5); // Block
+        } else if (bInfo.mode == INSERT) {
+            write(STDOUT_FILENO, "\x1b[6 q", 5); // I 
+        }
 
-            renderDraw(&buff, currentLine, &bInfo, &viewPort);
+        renderDraw(&buff, currentLine, &bInfo, &viewPort);
 
-            fflush(stdout);
+        fflush(stdout);
         /*-----------------------------------------------*/
     }
 
