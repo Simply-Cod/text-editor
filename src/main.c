@@ -10,7 +10,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 void cleanup();
 
@@ -208,6 +207,7 @@ int main(int argc, char *argv[]) {
                 case ENTER:
                     bufferAddLineBelow(&buff, currentLine);
                     bInfo.buffIsDirty = true;
+                    bInfo.renderFull = true;
 
                     if (currentLine->next == NULL) break;
 
@@ -245,17 +245,22 @@ int main(int argc, char *argv[]) {
                 // ========================================
                 case BACKSPACE:
                     if (currentLine->cursorPosition <= 0) {
+                        bInfo.renderFull = true;
 
                         if (currentLine->previous == NULL) break;
 
                         if (currentLine->lineLength > 0) {
 
-                        lineMoveBuffUp(currentLine);
-                        currentLine = currentLine->previous;
-                        bufferDeleteLine(&buff, currentLine->next);
-                        } else {
+                            int newCur = currentLine->previous->lineLength;
+                            lineMoveBuffUp(currentLine);
                             currentLine = currentLine->previous;
                             bufferDeleteLine(&buff, currentLine->next);
+                            currentLine->cursorPosition = newCur;
+                        } else {
+                            int newCur = currentLine->previous->lineLength;
+                            currentLine = currentLine->previous;
+                            bufferDeleteLine(&buff, currentLine->next);
+                            currentLine->cursorPosition = newCur;
                         }
                         prefCurPos = currentLine->cursorPosition;
                         bInfo.renderFull = true;

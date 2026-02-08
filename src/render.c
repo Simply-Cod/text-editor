@@ -51,6 +51,10 @@ int renderDraw(Buffer *buffer, LineBuffer *currentLine, BufferInfo *bInfo, ViewP
 
     if (!updateViewPort(viewPort, bInfo, currentLine)) return 0;
 
+    if (viewPort->topLine != viewPort->oldTopLine) {
+        bInfo->renderFull = true;
+        viewPort->oldTopLine = viewPort->topLine;
+    }
 
 
     LineBuffer *printPtr = buffer->head;
@@ -159,16 +163,28 @@ void printHlLine(LineBuffer *line) {
         if (hl[i] != prev) {
             switch (hl[i]) {
                 case HL_NORMAL:
-                    write(STDOUT_FILENO, CLR_RESET, 4);
+                    write(STDOUT_FILENO, CLR_RESET, CLR_RESET_LEN);
                     break;
                 case HL_COMMENT:
-                    write(STDOUT_FILENO, CLR_COMMENT, 10);
+                    write(STDOUT_FILENO, CLR_COMMENT, CLR_COMMENT_LEN);
                     break;
                 case HL_STRING:
-                    write(STDOUT_FILENO, CLR_STRING, 5);
+                    write(STDOUT_FILENO, CLR_STRING, CLR_STRING_LEN);
                     break;
                 case HL_NUMBER:
-                    write(STDOUT_FILENO, CLR_NUMBER, 5);
+                    write(STDOUT_FILENO, CLR_NUMBER, CLR_NUMBER_LEN);
+                    break;
+                case HL_OPERATOR:
+                    write(STDOUT_FILENO, CLR_OPERATOR, CLR_OPERATOR_LEN);
+                    break;
+                case HL_DATA:
+                    write(STDOUT_FILENO, CLR_DATA, CLR_DATA_LEN);
+                    break;
+                case HL_KEYWORD:
+                    write(STDOUT_FILENO, CLR_KEYWORDS, CLR_KEYWORDS_LEN);
+                    break;
+                case HL_FUNCTION:
+                    write(STDOUT_FILENO, CLR_FUNCTION, CLR_FUNCTION_LEN);
                     break;
             }
             prev = hl[i];
@@ -176,8 +192,49 @@ void printHlLine(LineBuffer *line) {
 
         write(STDOUT_FILENO, &line->buffer[i], 1);
     }
-    write(STDOUT_FILENO, CLR_RESET, 4);
+    write(STDOUT_FILENO, CLR_RESET, CLR_RESET_LEN);
 }
+
+static const char *c_dataTypes[] = {
+    "int", "float", "char",
+    "double", "void", "enum",
+    "short", "struct", "union",
+    "signed", "unsigned",
+    NULL,
+};
+
+static int isDataType(const char *word, int len) {
+
+    for (int i = 0; c_dataTypes[i]; i++) {
+        if ((int)strlen(c_dataTypes[i]) == len && strncmp(c_dataTypes[i], word, len) == 0) {
+            return 1;
+        }
+
+    }
+    return 0;
+}
+
+static const char *c_keywords[] = {
+    "if", "else", "else if",
+    "switch", "case", "default",
+    "while", "for", "do",
+    "break", "return", "continue",
+    "goto", "typedef", "static",
+    "const",
+    NULL,
+};
+
+static int isKeyword(const char *word, int len) {
+
+    for (int i = 0; c_keywords[i]; i++) {
+        if ((int)strlen(c_keywords[i]) == len && strncmp(c_keywords[i], word, len) == 0) {
+            return 1;
+        }
+
+    }
+    return 0;
+}
+
 
 void parseCHighlight(LineBuffer *line, Highlight *hl) {
 
@@ -215,6 +272,60 @@ void parseCHighlight(LineBuffer *line, Highlight *hl) {
             hl[i] = HL_NUMBER;
             i++;
             continue;
+        }
+
+        // Operators
+        switch(line->buffer[i]) {
+            case '+':
+            case '-':
+            case '/':
+            case '*':
+            case '=':
+            case '!':
+            case '&':
+            case '|':
+            case '<':
+            case '>':
+                hl[i] = HL_OPERATOR;
+                i++;
+                continue;
+        }
+
+        // Data types
+        if (isalpha(line->buffer[i]) || line->buffer[i] == '_') {
+            int start = i;
+
+            while (i < line->lineLength && (isalnum(line->buffer[i]) || line->buffer[i] == '_')) {
+                i++;
+            }
+
+            int wordlen = i - start;
+
+            if (isDataType(&line->buffer[start], wordlen)) {
+                for (int j = start; j < i; j++) {
+                    hl[j] = HL_DATA;
+                }
+            } else if (isKeyword(&line->buffer[start], wordlen)) {
+                for (int j = start; j < i; j++) {
+                    hl[j] = HL_KEYWORD;
+                }
+            }
+            continue;
+        }
+
+        // Functions
+        if (line->buffer[i] == '(') {
+            if (i > 1 && (line->buffer[i - 1] != ' ' || line->buffer[i - 1] != '.') && hl[i - 1] == HL_NORMAL) {
+
+                int b = i - 1;
+                while (line->buffer[b] != ' ' && line->buffer[b] != ')') {
+                    hl[b] = HL_FUNCTION;
+                    b--;
+
+                    if (b == 0) break;
+                    if (line->buffer[b] == '(' || hl[b] != HL_NORMAL) break;
+                }
+            }
         }
 
         i++;
